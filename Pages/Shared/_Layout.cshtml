@@ -1,0 +1,28 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PatoQuiz - @ViewData["Title"]</title>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    <header>
+        <h1>PatoQuiz</h1>
+        <nav>
+            <a href="/">Home</a>
+           
+                <a href="/Admin">Admin</a>
+           
+        </nav>
+    </header>
+
+    <main>
+        @RenderBody()
+    </main>
+
+    <footer>
+        <p>2025 patoquiz.dk Jens Haugbølle Bjerre</p>
+    </footer>
+</body>
+</html>
