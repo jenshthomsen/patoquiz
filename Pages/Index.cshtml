@@ -1,0 +1,18 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Home page";
+}
+@{
+    Layout = "_Layout"; // Use the layout
+}
+
+<h1>Available Quizzes</h1>
+<ul>
+    @foreach (var quiz in Model.Quizzes)
+    {
+        <li>
+            <a href="/Quiz/@quiz.Id">@quiz.Title</a> (@quiz.Subspecialty?.Name)
+        </li>
+    }
+</ul>

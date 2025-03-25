@@ -1,0 +1,180 @@
+﻿@page
+@using patoquiz.Models
+@model patoquiz.Pages.AdminModel
+@{
+    Layout = "_Layout";
+}
+
+<h1>Admin Dashboard</h1>
+<p>@Model.Message</p>
+
+@if (!Model.IsAdmin())
+{
+        <details open>
+            <summary>Login</summary>
+            <form method="post" asp-page-handler="Login">
+                <div>
+                    <label>Username:</label>
+                    <input asp-for="Login.Username" required />
+                </div>
+                <div>
+                    <label>Password:</label>
+                    <input asp-for="Login.Password" type="password" required />
+                </div>
+                <button type="submit">Login</button>
+            </form>
+        </details>
+}
+else
+{
+        <form method="post" asp-page-handler="Logout">
+            <button type="submit">Logout</button>
+        </form>
+
+        <details>
+            <summary>Manage Subspecialties</summary>
+            <form method="post" asp-page-handler="CreateSubspecialty">
+                <div>
+                    <label>Name:</label>
+                    <input asp-for="NewSubspecialty.Name" required />
+                    <button type="submit">Create</button>
+                </div>
+            </form>
+            <ul>
+            @foreach (var subspecialty in Model.Subspecialties)
+            {
+                        <li>
+                    @subspecialty.Name
+                            <form method="post" asp-page-handler="Delete" class="inline-form">
+                                <input type="hidden" name="id" value="@subspecialty.Id" />
+                                <input type="hidden" name="type" value="Subspecialty" />
+                                <button type="submit" class="small-button">Delete</button>
+                            </form>
+                        </li>
+            }
+            </ul>
+        </details>
+
+        <details @(Model.EditingQuiz == null ? "open" : "")>
+            <summary>Manage Quizzes</summary>
+            <form method="post" asp-page-handler="CreateQuiz">
+                <div>
+                    <label>Title:</label>
+                    <input asp-for="NewQuiz.Title" required />
+                </div>
+                <div>
+                    <label>Description:</label>
+                    <input asp-for="NewQuiz.Description" />
+                </div>
+                <div>
+                    <label>Subspecialty:</label>
+                    <select asp-for="NewQuiz.SubspecialtyId" asp-items="@(new SelectList(Model.Subspecialties, "Id", "Name"))" required></select>
+                </div>
+                <button type="submit">Create Quiz</button>
+            </form>
+            <ul>
+            @foreach (var quiz in Model.Quizzes)
+            {
+                        <li>
+                    @quiz.Title
+                            <a href="/Admin?editQuizId=@quiz.Id" class="small-button">Edit</a>
+                            <form method="post" asp-page-handler="Delete" class="inline-form">
+                                <input type="hidden" name="id" value="@quiz.Id" />
+                                <input type="hidden" name="type" value="Quiz" />
+                                <button type="submit" class="small-button">Delete</button>
+                            </form>
+                        </li>
+            }
+            </ul>
+        </details>
+
+    @if (Model.EditingQuiz != null)
+    {
+                <details open>
+                    <summary>Editing: @Model.EditingQuiz.Title</summary>
+            @if (Model.PendingQuestion == null)
+            {
+                            <form method="post" asp-page-handler="AddQuestion">
+                                <input type="hidden" name="quizId" value="@Model.EditingQuiz.Id" />
+                                <button type="submit" class="add-button">Add Question</button>
+                            </form>
+            }
+            @if (Model.PendingQuestion != null)
+            {
+                <div class="question-row">
+                    <form method="post" asp-page-handler="@(Model.PendingQuestion.IsCopy ? "SaveCopiedQuestion" : "SaveQuestion")" enctype="multipart/form-data" class="inline-form">
+                        <input type="hidden" name="quizId" value="@Model.EditingQuiz.Id" />
+                        <input type="file" asp-for="PendingQuestion.ImageUpload" accept="image/*" required="@(!Model.PendingQuestion.IsCopy)" />
+                        <input asp-for="PendingQuestion.Text" required placeholder="Question text" />
+                        <button type="submit" class="small-button">Done</button>
+                    </form>
+                </div>
+                @if (Model.PendingQuestion.IsCopy)
+                {
+                    @foreach (var a in Model.PendingQuestion.Answers)
+                    {
+                                <div class="answer-row">
+                                    <input asp-for="@a.Text" required />
+                                    <label>Correct: <input type="checkbox" asp-for="@a.IsCorrect" /></label>
+                                    <input asp-for="@a.Explanation" placeholder="Explanation" />
+                                </div>
+                    }
+                }
+            }
+
+            @foreach (var question in Model.EditingQuiz.Questions ?? Enumerable.Empty<Question>())
+            {
+                            <div class="question-block">
+                                <div class="question-row">
+                                    <span>@question.Text</span>
+                                    <img src="@question.ImagePath" alt="Question Image" style="max-width: 100px;" />
+                        @if (Model.PendingAnswer == null || Model.PendingAnswer.QuestionId != question.Id)
+                        {
+                                            <form method="post" asp-page-handler="AddAnswer" class="inline-form">
+                                                <input type="hidden" name="quizId" value="@Model.EditingQuiz.Id" />
+                                                <input type="hidden" name="questionId" value="@question.Id" />
+                                                <button type="submit" class="small-button">Add Answer</button>
+                                            </form>
+                                            <form method="post" asp-page-handler="CopyQuestion" class="inline-form">
+                                                <input type="hidden" name="quizId" value="@Model.EditingQuiz.Id" />
+                                                <input type="hidden" name="copyQuestionId" value="@question.Id" />
+                                                <button type="submit" class="small-button">Copy</button>
+                                            </form>
+                                            <form method="post" asp-page-handler="Delete" class="inline-form">
+                                                <input type="hidden" name="id" value="@question.Id" />
+                                                <input type="hidden" name="type" value="Question" />
+                                                <button type="submit" class="small-button">Delete</button>
+                                            </form>
+                        }
+                                </div>
+                    @if (Model.PendingAnswer != null && Model.PendingAnswer.QuestionId == question.Id)
+                    {
+                                        <div class="answer-row">
+                                            <form method="post" asp-page-handler="SaveAnswer" class="inline-form">
+                                                <input type="hidden" name="quizId" value="@Model.EditingQuiz.Id" />
+                                                <input type="hidden" name="questionId" value="@question.Id" />
+                                                <input asp-for="PendingAnswer.Text" required placeholder="Answer text" />
+                                                <label>Correct: <input type="checkbox" asp-for="PendingAnswer.IsCorrect" /></label>
+                                                <input asp-for="PendingAnswer.Explanation" placeholder="Explanation" />
+                                                <button type="submit" class="small-button">Done</button>
+                                            </form>
+                                        </div>
+                    }
+                                <ul class="answers">
+                        @foreach (var answer in question.Answers ?? Enumerable.Empty<Answer>())
+                        {
+                                            <li class="answer-item">
+                                @answer.Text @(answer.IsCorrect ? "(Correct)" : "") - @answer.Explanation
+                                                <form method="post" asp-page-handler="Delete" class="inline-form">
+                                                    <input type="hidden" name="id" value="@answer.Id" />
+                                                    <input type="hidden" name="type" value="Answer" />
+                                                    <button type="submit" class="small-button">Delete</button>
+                                                </form>
+                                            </li>
+                        }
+                                </ul>
+                            </div>
+            }
+                </details>
+    }
+}

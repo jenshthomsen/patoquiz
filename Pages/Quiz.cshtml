@@ -1,0 +1,32 @@
+﻿@page "{id:int}/{questionIndex?}"
+@model patoquiz.Pages.QuizModel
+@{
+    Layout = "_Layout"; // Use the layout
+}
+<link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+
+<main>
+    <h1>@Model.Quiz.Title</h1>
+    <p><strong>Question @(Model.CurrentQuestionIndex + 1) of @(Model.Quiz.Questions?.Count ?? 0)</strong></p>
+
+    <div class="question">
+        <img src="@Model.CurrentQuestion.ImagePath" alt="Question Image" class="question-image" />
+        <h2>@Model.CurrentQuestion.Text</h2>
+        <form method="post">
+            <ul class="answers">
+                @foreach (var answer in Model.CurrentQuestion.Answers!)
+                {
+                        <li>
+                            <label>
+                                <input type="radio" name="selectedAnswer" value="@answer.Text" required />
+                            @answer.Text
+                            </label>
+                        </li>
+                }
+            </ul>
+            <button type="submit" class="next-button">Next</button>
+            <input type="hidden" name="id" value="@Model.Quiz.Id" />
+            <input type="hidden" name="questionIndex" value="@Model.CurrentQuestionIndex" />
+        </form>
+    </div>
+</main>

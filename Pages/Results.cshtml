@@ -1,0 +1,32 @@
+﻿@page "{id:int}"
+@model patoquiz.Pages.ResultsModel
+@{
+    Layout = "_Layout"; // Use the layout
+}
+<link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+
+<main>
+    <h1>@Model.Quiz.Title - Results</h1>
+    <p><strong>Your Score:</strong> @Model.Score out of @(Model.Quiz.Questions?.Count ?? 0)</p>
+
+    <div class="results">
+        @for (int i = 0; i < Model.Quiz.Questions!.Count; i++)
+        {
+            var question = Model.Quiz.Questions[i];
+            var userAnswer = i < Model.UserAnswers.Count ? Model.UserAnswers[i] : "No answer";
+            var correctAnswer = question.Answers.FirstOrDefault(a => a.IsCorrect)?.Text ?? "N/A";
+
+            <div class="result-item">
+                <img src="@question.ImagePath" alt="Question Image" class="result-image" />
+                <h2>@question.Text</h2>
+                <p><strong>Your Answer:</strong> @userAnswer</p>
+                <p><strong>Correct Answer:</strong> @correctAnswer</p>
+                <p><strong>Explanation:</strong> @(question.Answers.FirstOrDefault(a => a.Text == userAnswer)?.Explanation ?? "No explanation available")</p>
+            </div>
+        }
+    </div>
+
+    <div class="navigation">
+        <a href="/" class="home-button">Return to Home</a>
+    </div>
+</main>
